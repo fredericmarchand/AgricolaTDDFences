@@ -12,7 +12,7 @@ public class Space {
 		square=false;
 		valid=true;
 		stack=0;
-		//e= empty, w=wood room, p=pasture, c=clay room, s=stone room, f=field, x=fence
+		//e= empty, w=wood room, p=pasture, c=clay room, s=stone room, f=field, x=fence, m=stable
 		
 	}
 	

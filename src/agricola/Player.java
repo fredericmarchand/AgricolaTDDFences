@@ -1,5 +1,7 @@
 package agricola;
 
+import java.util.ArrayList;
+
 public class Player {
 	
 	@SuppressWarnings("unused")
@@ -8,6 +10,7 @@ public class Player {
 	private char roomtype;
 	private boolean hasOven;
 	public int fenceCount;
+	public ArrayList<Fence> fences;
 //	private farm
 	
 	public Player(){
@@ -32,6 +35,11 @@ public class Player {
 		score=0;
 		fenceCount = 0;
 		hasOven=false;
+		fences = new ArrayList<Fence>();
+	}
+	
+	public ArrayList<Fence> getFences() {
+		return fences;
 	}
 	
 	public int getScore(){
@@ -254,8 +262,9 @@ public class Player {
 		rooms=rooms+n;
 	}
 	
-	public void addFence() {
+	public void addFence(int row, int col) {
 		fenceCount++;
+		fences.add(new Fence(row, col));
 	}
 	
 	

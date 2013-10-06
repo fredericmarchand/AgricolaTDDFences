@@ -7,6 +7,8 @@ package testing;
 
 import static org.junit.Assert.*;
 
+import java.awt.Color;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -83,11 +85,74 @@ public class FencesSupport {
 	}
 	
 	@Test 
-	public void testFarmClick() {
+	public void testBuildFence() {
 		agricolaController.wFences = true;
 		agricolaController.getPlayer(0).wood = 5;
 		agricolaController.view.getButtons()[0][1].doClick();
-		while(true);
+		agricolaController.view.getButtons()[1][0].doClick();
+		agricolaController.view.getButtons()[1][2].doClick();
+		agricolaController.view.getButtons()[2][1].doClick();
+		agricolaController.createPastures();
+		agricolaController.updateFarm(false);
+		assertEquals('p', agricolaController.farm[0][1][1].getType());
+	}
+	
+	@Test 
+	public void testMoreThan15Fences() {
+		agricolaController.wFences = true;
+		agricolaController.getPlayer(0).wood = 16;
+		agricolaController.view.getButtons()[1][2].doClick();
+		agricolaController.view.getButtons()[1][4].doClick();
+		agricolaController.view.getButtons()[1][6].doClick();
+		agricolaController.view.getButtons()[0][3].doClick();
+		agricolaController.view.getButtons()[0][5].doClick();
+		agricolaController.view.getButtons()[2][3].doClick();
+		agricolaController.view.getButtons()[2][5].doClick();
+		agricolaController.view.getButtons()[0][7].doClick();
+		agricolaController.view.getButtons()[2][7].doClick();
+		agricolaController.view.getButtons()[1][8].doClick();
+		agricolaController.view.getButtons()[0][9].doClick();
+		agricolaController.view.getButtons()[2][9].doClick();
+		agricolaController.view.getButtons()[1][10].doClick();
+		agricolaController.view.getButtons()[3][4].doClick();
+		agricolaController.view.getButtons()[3][6].doClick();
+		agricolaController.view.getButtons()[3][8].doClick();
+		agricolaController.createPastures();
+		agricolaController.updateFarm(false);
+		assertEquals(15, agricolaController.getPlayer(0).getFenceCount());
+	}
+	
+	public void test1WoodFencePrice() {
+		agricolaController.wFences = true;
+		agricolaController.getPlayer(0).wood = 1;
+		agricolaController.view.getButtons()[1][2].doClick();
+		assertEquals(0, agricolaController.getPlayer(0).wood);
+	}
+	
+	@Test 
+	public void testBuildPastureAroundField() {
+		agricolaController.getPlayer(0).wood = 5;
+		agricolaController.b_field.doClick();
+		agricolaController.view.getButtons()[1][1].doClick();
+		agricolaController.wFences = true;
+		agricolaController.view.getButtons()[0][1].doClick();
+		agricolaController.view.getButtons()[1][0].doClick();
+		agricolaController.view.getButtons()[1][2].doClick();
+		agricolaController.view.getButtons()[2][1].doClick();
+		agricolaController.createPastures();
+		agricolaController.updateFarm(false);
+		assertNotSame('p', agricolaController.farm[0][1][1].getType());
+	}
+
+	@Test 
+	public void testOrthogonalAdjancancy() {
+		agricolaController.getPlayer(0).wood = 5;
+		agricolaController.wFences = true;
+		agricolaController.view.getButtons()[0][1].doClick();
+		agricolaController.updateFarm(false);
+		agricolaController.view.getButtons()[0][7].doClick();
+		agricolaController.updateFarm(false);
+		assertNotSame(agricolaController.view.getButtons()[0][1].getBackground(), agricolaController.view.getButtons()[0][7].getBackground());
 	}
 	
 }

@@ -12,7 +12,7 @@ public class AgricolaController extends JFrame implements MouseListener,
 	private Player[] players;
 	public FarmView view;
 	private JButton[][] b;
-	private Space[][][] farm;
+	public Space[][][] farm;
 	public JButton b_room, b_start, b_grain, b_field, b_stable, b_day, b_wood,
 			b_clay, b_reed, b_food, b_sheep, b_sow, b_fences, b_improve,
 			b_stone, b_growth, b_renov, b_boar, b_vege, b_cattle, b_stone2,
@@ -34,6 +34,8 @@ public class AgricolaController extends JFrame implements MouseListener,
 	private int cur_player, start_player, view_player;
 	public boolean wField, wRoom, wStableRoom, wStable, wRoom2, wSow,
 			wFieldSow, wFences, wSheep, wBoar, wCattle, wField2;
+	
+	JButton fence_done;
 
 	public AgricolaController(int numPlayers) {
 		num_players = numPlayers;
@@ -999,10 +1001,10 @@ public class AgricolaController extends JFrame implements MouseListener,
 
 			} else if (e.getActionCommand().equals(
 					"Build Fences [1 wood per fence] (must enclose pasture)")) {
-				System.out.println("Hello world");
 				int retFence = buildFencesAction();
 				switch (retFence) {
 				case 0:
+					players[cur_player].useFam();
 					JOptionPane
 					.showMessageDialog(
 							null,
@@ -1947,7 +1949,7 @@ public class AgricolaController extends JFrame implements MouseListener,
 						players[cur_player].addWood(-2);
 						farm[cur_player][((JButton) e.getSource()).location().y / 110 * 2 + 1][((JButton) e
 								.getSource()).location().x / 118 * 2 + 1]
-								.setType('p');
+								.setType('m');
 						Object stabdone[] = { "Build Room", "Build Stable",
 								"Done Action" };
 
@@ -2268,6 +2270,7 @@ public class AgricolaController extends JFrame implements MouseListener,
 		wBoar = false;
 		wCattle = false;
 
+		createPastures();
 		int sum = 0;
 		for (int i = 0; i < num_players; i++)
 			sum += players[i].getActiveFamily();
@@ -2670,21 +2673,27 @@ public class AgricolaController extends JFrame implements MouseListener,
 						b[r][col].setBackground(Color.orange);
 					else if (farm[view_player][r][col].getType() == 's')
 						b[r][col].setBackground(Color.gray);
-					else if (farm[view_player][r][col].getType() == 'p') {
+					else if (farm[view_player][r][col].getType() == 'm') {
 						b[r][col].setBackground(new Color(135, 206, 250));
-					} else if (farm[view_player][r][col].getType() == 'g') {
+					}
+					else if (farm[view_player][r][col].getType() == 'p') {
+						b[r][col].setBackground(Color.pink);
+					} 
+					else if (farm[view_player][r][col].getType() == 'g') {
 						if (farm[view_player][r][col].getStack() == 1)
 							b[r][col].setBackground(new Color(238, 232, 170));
 						else if (farm[view_player][r][col].getStack() == 2)
 							b[r][col].setBackground(Color.yellow);
 						else
 							b[r][col].setBackground(new Color(255, 215, 0));
-					} else if (farm[view_player][r][col].getType() == 'v') {
+					} 
+					else if (farm[view_player][r][col].getType() == 'v') {
 						if (farm[view_player][r][col].getStack() == 2)
 							b[r][col].setBackground(Color.green);
 						else
 							b[r][col].setBackground(new Color(152, 251, 152));
-					} else if (farm[view_player][r][col].getType() == 'f')
+					} 
+					else if (farm[view_player][r][col].getType() == 'f')
 						b[r][col].setBackground(new Color(139, 69, 19));
 					else if (farm[view_player][r][col].getType() == 'x')
 						b[r][col].setBackground(new Color(205, 133, 63));
@@ -2740,24 +2749,57 @@ public class AgricolaController extends JFrame implements MouseListener,
 		return false;
 	}
 	
+	public void createPastures() {
+		int pastureCount = 0;
+		int animalCount = 0;
+		int checker = 0x0000;
+		for (int row = 1; row <= 5; row+=2) {
+			for (int col = 1; col <= 9; col+=2 ) {
+				if ( farm[view_player][row][col].getType() == 'w' ||
+					 farm[view_player][row][col].getType() == 'c' ||
+					 farm[view_player][row][col].getType() == 's' ||
+					 farm[view_player][row][col].getType() == 'f') continue;
+				for (Fence fence: players[cur_player].getFences()) {
+					if (fence.getX() > row && fence.getY() == col)
+						checker |= 0x0001;
+					if (fence.getX() < row && fence.getY() == col) 
+						checker |= 0x0010;
+					if (fence.getX() == row && fence.getY() < col) 
+						checker |= 0x0100;
+					if (fence.getX() == row && fence.getY() > col)
+						checker |= 0x1000;
+				}
+				if (checker == 0x1111) {
+					pastureCount++;
+					if (farm[view_player][row][col].getType() == 'm') {
+						animalCount += 4;
+					}
+					farm[view_player][row][col].setType('p');
+					updateFarm(false);
+					wFences = true;
+				}
+				checker = 0x0000;
+			}
+		}
+	}
+	
 	public void handleBuildFarmFence(JButton button) {
 		boolean correctClick = false;
 		if (players[cur_player].getWood() <= 0) {
 			update(false);
-			return; //joptionpane
+			return; 
 		} else if (players[cur_player].getFenceCount() >= 15) {
 			update(false);
-			return; //joptionpane
+			return; 
 		}
 		for (int row = 1; row < 7; row+=2) {
 			for (int col = 0; col <= 10; col+=2) {
 				if (button == view.getButtons()[row][col] && validFencePosition(row, col)) {
 					correctClick = true;
-					button.setBackground(Color.orange);
+					button.setBackground(Color.pink);
 					view.getFarm()[row][col].setType('x');
 					players[cur_player].addWood(-1);
-					players[cur_player].addFence();
-					System.out.println("bingo: (" + row + ", " + col + ")");
+					players[cur_player].addFence(row, col);
 					break;
 				}
 			}
@@ -2768,11 +2810,10 @@ public class AgricolaController extends JFrame implements MouseListener,
 				for (int col = 1; col < 11; col+=2) {
 					if (button == view.getButtons()[row][col] && validFencePosition(row, col)) {
 						correctClick = true;
-						button.setBackground(Color.orange);
+						button.setBackground(Color.pink);
 						view.getFarm()[row][col].setType('x');
 						players[cur_player].addWood(-1);
-						players[cur_player].addFence();
-						System.out.println("bingo: (" + row + ", " + col + ")");
+						players[cur_player].addFence(row, col);
 						break;
 					}
 				}
