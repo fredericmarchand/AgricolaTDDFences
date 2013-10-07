@@ -3,11 +3,8 @@
  */
 package testing;
 
-
-
 import static org.junit.Assert.*;
-
-import java.awt.Color;
+import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -69,8 +66,9 @@ public class FencesSupport {
 	}
 	
 	@Test
-	public void testClickBuildFences() {
-		/*for (int i = 0; i < 3; i++) {
+	public void testDifferentPromptsforFence() {
+		//optional test to view the prompts
+		for (int i = 0; i < 3; i++) {
 			agricolaController.b_food.doClick();
 			agricolaController.b_reed.doClick();
 		}
@@ -81,7 +79,7 @@ public class FencesSupport {
 		agricolaController.b_fences.doClick();
 		agricolaController.getPlayer(0).fenceCount = 15;
 		agricolaController.update(false);
-		agricolaController.b_fences.doClick();*/
+		agricolaController.b_fences.doClick();
 	}
 	
 	@Test 
@@ -145,7 +143,7 @@ public class FencesSupport {
 	}
 
 	@Test 
-	public void testOrthogonalAdjancancy() {
+	public void testOrthogonalAdjacancy() {
 		agricolaController.getPlayer(0).wood = 5;
 		agricolaController.wFences = true;
 		agricolaController.view.getButtons()[0][1].doClick();
@@ -153,6 +151,31 @@ public class FencesSupport {
 		agricolaController.view.getButtons()[0][7].doClick();
 		agricolaController.updateFarm(false);
 		assertNotSame(agricolaController.view.getButtons()[0][1].getBackground(), agricolaController.view.getButtons()[0][7].getBackground());
+	}
+	
+	@Test
+	public void testAnimalPopulation() {
+		for (int i = 0; i < 9; ++i) {
+			agricolaController.b_wood.doClick();
+			agricolaController.b_reed.doClick();
+		}
+		agricolaController.b_cattle.doClick();
+		assertEquals(1, agricolaController.getPlayer(0).getCattle());
+		assertEquals(1, agricolaController.getPlayer(0).getTotalAnimals());
+		
+		agricolaController.wFences = true;
+		agricolaController.view.getButtons()[0][1].doClick();
+		agricolaController.view.getButtons()[1][0].doClick();
+		agricolaController.view.getButtons()[1][2].doClick();
+		agricolaController.view.getButtons()[2][1].doClick();
+		agricolaController.wFences = false;
+		agricolaController.b_food.doClick();
+		agricolaController.b_sheep.doClick();
+		/* You will be prompted to consume animals until you respect the maximum amount capacity
+		 * for 1 pasture + the default of 1 animal the house
+		 * This will render the condition below true 
+		 */
+		Assert.assertTrue(agricolaController.getPlayer(0).getTotalAnimals() <= 3);
 	}
 	
 }

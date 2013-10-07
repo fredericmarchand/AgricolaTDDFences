@@ -34,12 +34,13 @@ public class AgricolaController extends JFrame implements MouseListener,
 	private int cur_player, start_player, view_player;
 	public boolean wField, wRoom, wStableRoom, wStable, wRoom2, wSow,
 			wFieldSow, wFences, wSheep, wBoar, wCattle, wField2;
+	public boolean debug_mode;
 	
 	JButton fence_done;
 
 	public AgricolaController(int numPlayers) {
 		num_players = numPlayers;
-
+		debug_mode = true;
 		players = new Player[5];
 		farm = new Space[5][7][11];
 
@@ -378,6 +379,8 @@ public class AgricolaController extends JFrame implements MouseListener,
 		players = new Player[5];
 		farm = new Space[5][7][11];
 
+		debug_mode = false;
+		
 		// player = new Player();
 		view = new FarmView();
 
@@ -776,6 +779,7 @@ public class AgricolaController extends JFrame implements MouseListener,
 
 		if (e.getSource() instanceof JButton) {
 
+			
 			if (e.getActionCommand()
 					.equals("Build rooms [5 wood/clay/stone and 2 reed] and/or build stables [2 wood]")) {
 
@@ -930,10 +934,14 @@ public class AgricolaController extends JFrame implements MouseListener,
 
 				update(false);
 			} else if (e.getActionCommand().equals("Take sheep (+1 per round)")) {
+				
 				b_sheep.setVisible(false);
 				players[cur_player].addSheep(sheep);
 				sheep = 0;
 				players[cur_player].useFam();
+				update(false);
+				if (players[cur_player].getTotalAnimals() > players[cur_player].getMaxAnimalCount())
+					consume();
 
 				update(false);
 			} else if (e.getActionCommand().equals("Sow and/or Bake bread")) {
@@ -999,7 +1007,8 @@ public class AgricolaController extends JFrame implements MouseListener,
 				b_sow.setVisible(false);
 				update(false);
 
-			} else if (e.getActionCommand().equals(
+			}
+			else if (e.getActionCommand().equals(
 					"Build Fences [1 wood per fence] (must enclose pasture)")) {
 				int retFence = buildFencesAction();
 				switch (retFence) {
@@ -1114,10 +1123,14 @@ public class AgricolaController extends JFrame implements MouseListener,
 									JOptionPane.ERROR_MESSAGE);
 			} else if (e.getActionCommand().equals(
 					"Take wild boar (+1 per turn)")) {
+				
 				b_boar.setVisible(false);
 				players[cur_player].addBoar(boar);
 				boar = 0;
 				players[cur_player].useFam();
+				update(false);
+				if (players[cur_player].getTotalAnimals() > players[cur_player].getMaxAnimalCount())
+					consume();
 
 				update(false);
 			} else if (e.getActionCommand().equals("Take 1 vegetable")) {
@@ -1131,6 +1144,9 @@ public class AgricolaController extends JFrame implements MouseListener,
 				players[cur_player].addCattle(cattle);
 				cattle = 0;
 				players[cur_player].useFam();
+				update(false);
+				if (players[cur_player].getTotalAnimals() > players[cur_player].getMaxAnimalCount())
+					consume();
 
 				update(false);
 
@@ -2642,6 +2658,53 @@ public class AgricolaController extends JFrame implements MouseListener,
 		 * } }
 		 */
 	}
+	
+	public void consume() {
+		int selectedValue = 0;
+		Object harvestopt[] = { "Convert Sheep",
+				"Convert Boar", "Convert Cattle" };
+
+		while ((players[cur_player].getMaxAnimalCount() < (players[cur_player].getTotalAnimals()))) {
+
+			selectedValue = JOptionPane.showOptionDialog(null,
+					"You do not have enough room for all these animals", "Consume",
+					JOptionPane.DEFAULT_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, harvestopt,
+					harvestopt[0]);
+
+			if (selectedValue == 0 && players[cur_player].getSheep() > 0) {
+				if (players[cur_player].hasOven()) {
+					players[cur_player].addSheep(-1);
+					players[cur_player].addFood(2);
+				} 
+				else {
+					players[cur_player].addSheep(-1);
+					players[cur_player].addFood(1);
+				}
+
+			}
+			else if (selectedValue == 1 && players[cur_player].getBoar() > 0) {
+				if (players[cur_player].hasOven()) {
+					players[cur_player].addBoar(-1);
+					players[cur_player].addFood(3);
+				} 
+				else {
+					players[cur_player].addBoar(-1);
+					players[cur_player].addFood(1);
+				}
+			}
+			else if (selectedValue == 2 && players[cur_player].getCattle() > 0) {
+				if (players[cur_player].hasOven()) {
+					players[cur_player].addCattle(-1);
+					players[cur_player].addFood(4);
+				} 
+				else {
+					players[cur_player].addCattle(-1);
+					players[cur_player].addFood(2);
+				}
+			}
+		}
+	}
 
 	// **************************
 	// When any visual changes on the displayed farm need to be done
@@ -2771,9 +2834,7 @@ public class AgricolaController extends JFrame implements MouseListener,
 				}
 				if (checker == 0x1111) {
 					pastureCount++;
-					if (farm[view_player][row][col].getType() == 'm') {
-						animalCount += 4;
-					}
+					animalCount+=2;
 					farm[view_player][row][col].setType('p');
 					updateFarm(false);
 					wFences = true;
@@ -2781,6 +2842,8 @@ public class AgricolaController extends JFrame implements MouseListener,
 				checker = 0x0000;
 			}
 		}
+		players[cur_player].setPastureAreaCount(pastureCount);
+		players[cur_player].setMaxAnimalCount(++animalCount);
 	}
 	
 	public void handleBuildFarmFence(JButton button) {
@@ -2821,7 +2884,19 @@ public class AgricolaController extends JFrame implements MouseListener,
 			}
 		}
 		update(false);
-		wFences = true;
+		if (!debug_mode) {
+			Object[] possibleValues = { "Yes", "No" };
+			int selectedValue = JOptionPane.showOptionDialog(null,
+					"More fences?", "Choose one",
+					JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+					null, possibleValues, possibleValues[0]);
+			if (selectedValue == 0) {
+				wFences = true;
+			}
+		}
+		else {
+			wFences = true;
+		}
 	}
 
 }

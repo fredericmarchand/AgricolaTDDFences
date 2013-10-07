@@ -11,6 +11,8 @@ public class Player {
 	private boolean hasOven;
 	public int fenceCount;
 	public ArrayList<Fence> fences;
+	private int pastureAreaCount;
+	private int maxAnimalCount;
 //	private farm
 	
 	public Player(){
@@ -32,8 +34,10 @@ public class Player {
 		empty=13;
 		pasture=0;
 		stable=0;
+		setPastureAreaCount(0);
 		score=0;
 		fenceCount = 0;
+		maxAnimalCount = 1;
 		hasOven=false;
 		fences = new ArrayList<Fence>();
 	}
@@ -77,6 +81,7 @@ public class Player {
 			score+=cattle;
 			
 		score-=empty;
+		score+=pastureAreaCount;
 		
 		score+=stable;
 		
@@ -266,8 +271,38 @@ public class Player {
 		fenceCount++;
 		fences.add(new Fence(row, col));
 	}
+
+	/**
+	 * @return the pastureAreaCount
+	 */
+	public int getPastureAreaCount() {
+		return pastureAreaCount;
+	}
+
+	/**
+	 * @param pastureAreaCount the pastureAreaCount to set
+	 */
+	public void setPastureAreaCount(int pastureAreaCount) {
+		this.pastureAreaCount = pastureAreaCount;
+	}
+
+	/**
+	 * @return the maxAnimalCount
+	 */
+	public int getMaxAnimalCount() {
+		return maxAnimalCount;
+	}
+
+	/**
+	 * @param maxAnimalCount the maxAnimalCount to set
+	 */
+	public void setMaxAnimalCount(int maxAnimalCount) {
+		this.maxAnimalCount = maxAnimalCount;
+	}
 	
-	
+	public int getTotalAnimals() {
+		return (cattle + boar + sheep);
+	}
 	
 	
 	
